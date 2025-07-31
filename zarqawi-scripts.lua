@@ -15,8 +15,8 @@ local webhookURL = "https://discord.com/api/webhooks/1398936697651200011/HWm20r9
 
 -- Items to watch for
 local watchNames = {
-    ["Tranquil Blossom"] = true,
-    ["Corrupted Kitsune Seed"] = true,
+    ["Tranquil Blossom Seed"] = true,
+    ["Corrupted Kitsune"] = true,
     ["Dezen Seed"] = true
 }
 
