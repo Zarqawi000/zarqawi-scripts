@@ -4,40 +4,23 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local placeId = game.PlaceId
 
--- UI Setup
+-- GUI Setup
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "JobID_TeleportUI"
 screenGui.ResetOnSpawn = false
 
--- Executor UI protection
 if syn and syn.protect_gui then
     syn.protect_gui(screenGui)
 end
 
 screenGui.Parent = game.CoreGui
 
--- Toggle Button
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 120, 0, 30)
-toggleButton.Position = UDim2.new(0, 20, 0, 20)
-toggleButton.Text = "Show Teleport UI"
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.TextScaled = true
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleButton.Parent = screenGui
-
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 6)
-toggleCorner.Parent = toggleButton
-
--- Main Frame
+-- Main UI Frame
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 300, 0, 160)
 frame.Position = UDim2.new(0, 20, 0, 60)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.BorderSizePixel = 0
-frame.Visible = false
 frame.Parent = screenGui
 
 local corner = Instance.new("UICorner")
@@ -46,7 +29,7 @@ corner.Parent = frame
 
 -- Title Label
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -20, 0, 30)
+titleLabel.Size = UDim2.new(1, -40, 0, 30)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
 titleLabel.BackgroundTransparency = 1
 titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -55,6 +38,21 @@ titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Text = "Join a Server by Job ID"
 titleLabel.TextWrapped = true
 titleLabel.Parent = frame
+
+-- Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 24, 0, 24)
+closeButton.Position = UDim2.new(1, -30, 0, 6)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.TextScaled = true
+closeButton.Parent = frame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 4)
+closeCorner.Parent = closeButton
 
 -- TextBox for Input
 local textBox = Instance.new("TextBox")
@@ -88,7 +86,23 @@ local buttonCorner = Instance.new("UICorner")
 buttonCorner.CornerRadius = UDim.new(0, 6)
 buttonCorner.Parent = button
 
--- Teleport Function
+-- Floating Open Button (hidden by default)
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0, 140, 0, 30)
+openButton.Position = UDim2.new(0, 20, 0, 20)
+openButton.Text = "Open Teleport UI"
+openButton.Font = Enum.Font.SourceSansBold
+openButton.TextScaled = true
+openButton.TextColor3 = Color3.new(1, 1, 1)
+openButton.BackgroundColor3 = Color3.fromRGB(40, 120, 60)
+openButton.Visible = false
+openButton.Parent = screenGui
+
+local openCorner = Instance.new("UICorner")
+openCorner.CornerRadius = UDim.new(0, 6)
+openCorner.Parent = openButton
+
+-- Teleport Logic
 button.MouseButton1Click:Connect(function()
     local targetJobId = textBox.Text
     if targetJobId ~= "" then
@@ -102,10 +116,13 @@ button.MouseButton1Click:Connect(function()
     end
 end)
 
--- Toggle Function
-local isOpen = false
-toggleButton.MouseButton1Click:Connect(function()
-    isOpen = not isOpen
-    frame.Visible = isOpen
-    toggleButton.Text = isOpen and "Hide Teleport UI" or "Show Teleport UI"
+-- Close and Open Logic
+closeButton.MouseButton1Click:Connect(function()
+    frame.Visible = false
+    openButton.Visible = true
+end)
+
+openButton.MouseButton1Click:Connect(function()
+    frame.Visible = true
+    openButton.Visible = false
 end)
