@@ -1,95 +1,97 @@
--- Variables
+-- Services
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+local LocalPlayer = Players.LocalPlayer
 
--- UI Setup (using Delta or similar, pseudo code)
-local Delta = require(game.ReplicatedStorage.Delta) -- adjust to your setup
-
-local window = Delta:CreateWindow("Item Discord Sender")
-
--- Textbox for webhook URL (limit length)
-local webhookTextbox = window:AddTextbox("Discord Webhook URL", "", function(text)
-    if #text > 200 then -- limit length to 200 chars (adjust as needed)
-        return false -- reject input if too long
-    end
-    return true
-end)
-
--- Toggle for enabling sending
-local enabledToggle = window:AddToggle("Enable Webhook Sender", false)
-
--- Button to send item name
-local sendButton = window:AddButton("Send Item Name to Discord", function()
-    if not enabledToggle.Value then
-        print("Feature disabled.")
-        return
-    end
-
-    local webhookUrl = webhookTextbox.Value
-    if webhookUrl == "" then
-        warn("Webhook URL not set!")
-        return
-    end
-
-    local heldItemName = getHeldItemName()
-    if not heldItemName then
-        warn("No item held!")
-        return
-    end
-
-    sendToDiscord(webhookUrl, heldItemName)
-end)
-
--- Label to show held item name
-local heldItemLabel = window:AddLabel("Held Item: None")
-
--- Function to detect held item name
-function getHeldItemName()
-    local character = player.Character
-    if not character then return nil end
-
-    -- Adjust this part based on how held item is represented
-    -- Example: look for Tool in character's Backpack or character model
-    for _, item in pairs(character:GetChildren()) do
-        if item:IsA("Tool") then
-            return item.Name
-        end
-    end
-    return nil
+-- Executor HTTP request function
+local request = (syn and syn.request) or (http and http.request) or (request) or (http_request)
+if not request then
+    warn("HTTP not supported.")
+    return
 end
 
--- Update held item label every frame or periodically
-game:GetService("RunService").RenderStepped:Connect(function()
-    if enabledToggle.Value then
-        local name = getHeldItemName()
-        if name then
-            heldItemLabel.Text = "Held Item: " .. name
-        else
-            heldItemLabel.Text = "Held Item: None"
-        end
-    else
-        heldItemLabel.Text = "Held Item: (disabled)"
-    end
-end)
+-- Webhook URL (replace this)
+local webhookURL = "https://discord.com/api/webhooks/1398936697651200011/HWm20r9J3M4gUcvTvU-bIo9z77U7BSDJgLlVc_ijKJxFYFiZ2n3OWZqgwWpg9FfkqWoe"
 
--- Function to send a message to Discord webhook
-function sendToDiscord(webhookUrl, message)
-    local HttpService = game:GetService("HttpService")
+-- Items to watch for
+local watchNames = {
+    ["Tranquil Blossom"] = true,
+    ["Corrupted Kitsune"] = true,
+    ["Dezen"] = true
+}
 
-    local data = {
-        content = message
+-- Track already notified (prevent spam)
+local notified = {}
+
+-- Send notification
+local function notify(name, parentName)
+    if notified[name] then return end
+    notified[name] = true
+
+    local message = {
+        content = string.format("🎉 **New Item Hatched!**\n• Name: `%s`\n• From: `%s`", name, parentName)
     }
 
-    local jsonData = HttpService:JSONEncode(data)
+    request({
+        Url = webhookURL,
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body = HttpService:JSONEncode(message)
+    })
+end
 
-    local success, err = pcall(function()
-        HttpService:PostAsync(webhookUrl, jsonData, Enum.HttpContentType.ApplicationJson)
+-- Scan a folder for matching items
+local function watchFolder(folder)
+    folder.ChildAdded:Connect(function(child)
+        task.wait(0.5) -- allow name to settle
+        if watchNames[child.Name] then
+            notify(child.Name, folder.Name)
+        end
     end)
 
-    if success then
-        print("Sent item name to Discord!")
-    else
-        warn("Failed to send webhook: " .. tostring(err))
+    -- Scan existing
+    for _, child in pairs(folder:GetChildren()) do
+        if watchNames[child.Name] then
+            notify(child.Name, folder.Name)
+        end
     end
 end
+
+-- === Folders to monitor ===
+local foldersToWatch = {
+    LocalPlayer:WaitForChild("Backpack"),
+    LocalPlayer:WaitForChild("PlayerGui"),
+    game:GetService("ReplicatedStorage"),
+}
+
+-- Start watching
+for _, folder in ipairs(foldersToWatch) do
+    watchFolder(folder)
+end
+
+-- Optional UI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "ItemHatchNotifier"
+
+local label = Instance.new("TextLabel", gui)
+label.Size = UDim2.new(0, 320, 0, 40)
+label.Position = UDim2.new(0, 10, 0, 10)
+label.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+label.TextColor3 = Color3.new(1, 1, 1)
+label.Font = Enum.Font.SourceSansBold
+label.TextSize = 18
+label.TextXAlignment = Enum.TextXAlignment.Left
+label.Text = "📡 Hatch Notifier Running..."
+
+task.spawn(function()
+    while true do
+        local found = {}
+        for name in pairs(notified) do
+            table.insert(found, name)
+        end
+        if #found > 0 then
+            label.Text = "✅ Hatched: " .. table.concat(found, ", ")
+        end
+        task.wait(2)
+    end
+end)
