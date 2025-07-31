@@ -17,7 +17,7 @@ local webhookURL = "https://discord.com/api/webhooks/1398936697651200011/HWm20r9
 local watchNames = {
     ["Tranquil Blossom"] = true,
     ["Corrupted Kitsune"] = true,
-    ["Dezen"] = true
+    ["Dezen Seed"] = true
 }
 
 -- Track already notified (prevent spam)
