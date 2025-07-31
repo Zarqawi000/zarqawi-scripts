@@ -1,97 +1,90 @@
--- Services
-local HttpService = game:GetService("HttpService")
+-- Delta Executor Script: Server Job ID GUI with Teleport Button
+
+-- Load Services
+local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local jobId = game.JobId
+local placeId = game.PlaceId
 
--- Executor HTTP request function
-local request = (syn and syn.request) or (http and http.request) or (request) or (http_request)
-if not request then
-    warn("HTTP not supported.")
-    return
+-- UI Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "JobID_TeleportUI"
+screenGui.ResetOnSpawn = false
+
+-- Executor UI protection
+if syn and syn.protect_gui then
+    syn.protect_gui(screenGui)
 end
 
--- Webhook URL (replace this)
-local webhookURL = "https://discord.com/api/webhooks/1398936697651200011/HWm20r9J3M4gUcvTvU-bIo9z77U7BSDJgLlVc_ijKJxFYFiZ2n3OWZqgwWpg9FfkqWoe"
+screenGui.Parent = game.CoreGui
 
--- Items to watch for
-local watchNames = {
-    ["Tranquil Blossom Seed"] = true,
-    ["Corrupted Kitsune"] = true,
-    ["Dezen Seed"] = true
-}
+-- Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 400, 0, 200)
+frame.Position = UDim2.new(0, 20, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
 
--- Track already notified (prevent spam)
-local notified = {}
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = frame
 
--- Send notification
-local function notify(name, parentName)
-    if notified[name] then return end
-    notified[name] = true
+-- Title Label
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, -20, 0, 40)
+titleLabel.Position = UDim2.new(0, 10, 0, 10)
+titleLabel.BackgroundTransparency = 1
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Text = "Current Job ID:\n" .. (jobId ~= "" and jobId or "Unavailable")
+titleLabel.TextWrapped = true
+titleLabel.Parent = frame
 
-    local message = {
-        content = string.format("🎉 **New Item Hatched!**\n• Name: `%s`\n• From: `%s`", name, parentName)
-    }
+-- TextBox for Input
+local textBox = Instance.new("TextBox")
+textBox.Size = UDim2.new(1, -20, 0, 40)
+textBox.Position = UDim2.new(0, 10, 0, 90)
+textBox.PlaceholderText = "Paste Job ID here..."
+textBox.Text = ""
+textBox.TextScaled = true
+textBox.Font = Enum.Font.SourceSans
+textBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+textBox.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+textBox.ClearTextOnFocus = false
+textBox.Parent = frame
 
-    request({
-        Url = webhookURL,
-        Method = "POST",
-        Headers = { ["Content-Type"] = "application/json" },
-        Body = HttpService:JSONEncode(message)
-    })
-end
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0, 6)
+boxCorner.Parent = textBox
 
--- Scan a folder for matching items
-local function watchFolder(folder)
-    folder.ChildAdded:Connect(function(child)
-        task.wait(0.5) -- allow name to settle
-        if watchNames[child.Name] then
-            notify(child.Name, folder.Name)
-        end
-    end)
+-- Teleport Button
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1, -20, 0, 40)
+button.Position = UDim2.new(0, 10, 0, 140)
+button.Text = "Join Server by Job ID"
+button.Font = Enum.Font.SourceSansBold
+button.TextScaled = true
+button.TextColor3 = Color3.new(1, 1, 1)
+button.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
+button.Parent = frame
 
-    -- Scan existing
-    for _, child in pairs(folder:GetChildren()) do
-        if watchNames[child.Name] then
-            notify(child.Name, folder.Name)
-        end
-    end
-end
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 6)
+buttonCorner.Parent = button
 
--- === Folders to monitor ===
-local foldersToWatch = {
-    LocalPlayer:WaitForChild("Backpack"),
-    LocalPlayer:WaitForChild("PlayerGui"),
-    game:GetService("ReplicatedStorage"),
-}
-
--- Start watching
-for _, folder in ipairs(foldersToWatch) do
-    watchFolder(folder)
-end
-
--- Optional UI
-local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "ItemHatchNotifier"
-
-local label = Instance.new("TextLabel", gui)
-label.Size = UDim2.new(0, 320, 0, 40)
-label.Position = UDim2.new(0, 10, 0, 10)
-label.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-label.TextColor3 = Color3.new(1, 1, 1)
-label.Font = Enum.Font.SourceSansBold
-label.TextSize = 18
-label.TextXAlignment = Enum.TextXAlignment.Left
-label.Text = "📡 Hatch Notifier Running..."
-
-task.spawn(function()
-    while true do
-        local found = {}
-        for name in pairs(notified) do
-            table.insert(found, name)
-        end
-        if #found > 0 then
-            label.Text = "✅ Hatched: " .. table.concat(found, ", ")
-        end
-        task.wait(2)
+-- Button Function
+button.MouseButton1Click:Connect(function()
+    local targetJobId = textBox.Text
+    if targetJobId ~= "" then
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(placeId, targetJobId, LocalPlayer)
+        end)
+    else
+        button.Text = "Enter a valid Job ID!"
+        wait(2)
+        button.Text = "Join Server by Job ID"
     end
 end)
