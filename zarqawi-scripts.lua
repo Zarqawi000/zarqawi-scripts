@@ -1,128 +1,132 @@
--- Load Services
-local TeleportService = game:GetService("TeleportService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local placeId = game.PlaceId
+--// Webhook URL
+local webhookURL = "https://discord.com/api/webhooks/1398936697651200011/HWm20r9J3M4gUcvTvU-bIo9z77U7BSDJgLlVc_ijKJxFYFiZ2n3OWZqgwWpg9FfkqWoe"
 
--- GUI Setup
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "JobID_TeleportUI"
-screenGui.ResetOnSpawn = false
+--// Function to send webhook with embed
+local function sendWebhook(itemName)
+    local httpService = game:GetService("HttpService")
 
-if syn and syn.protect_gui then
-    syn.protect_gui(screenGui)
+    local data = {
+        embeds = {{
+            title = "🎯 You got a new pet",
+            description = "**Item:** " .. itemName,
+            color = 0x00FF00, -- Green
+            timestamp = DateTime.now():ToIsoDate()
+        }},
+        username = "Notifier by Zarqawi"
+    }
+
+    local jsonData = httpService:JSONEncode(data)
+
+    local requestFunction = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
+    if requestFunction then
+        requestFunction({
+            Url = webhookURL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = jsonData
+        })
+    else
+        warn("Your executor does not support HTTP requests.")
+    end
 end
 
-screenGui.Parent = game.CoreGui
+--// Function to send webhook when quantity changes
+local function sendQuantityChangeWebhook(itemName, newQty)
+    local httpService = game:GetService("HttpService")
 
--- Main UI Frame
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 160)
-frame.Position = UDim2.new(0, 20, 0, 60)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.BorderSizePixel = 0
-frame.Parent = screenGui
+    local data = {
+        embeds = { {
+            title = "🔄 You got a new seed",
+            description = "**Item:** " .. itemName .. "\n**New Quantity:** " .. tostring(newQty),
+            color = 0x00FF00,
+            timestamp = DateTime.now():ToIsoDate()
+        }},
+        username = "Notifier by Zarqawi"
+    }
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = frame
+    local jsonData = httpService:JSONEncode(data)
 
--- Title Label
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, -40, 0, 30)
-titleLabel.Position = UDim2.new(0, 10, 0, 10)
-titleLabel.BackgroundTransparency = 1
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextScaled = true
-titleLabel.Font = Enum.Font.SourceSansBold
-titleLabel.Text = "Join a Server by Job ID"
-titleLabel.TextWrapped = true
-titleLabel.Parent = frame
-
--- Close Button
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 24, 0, 24)
-closeButton.Position = UDim2.new(1, -30, 0, 6)
-closeButton.Text = "X"
-closeButton.TextColor3 = Color3.new(1, 1, 1)
-closeButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-closeButton.Font = Enum.Font.SourceSansBold
-closeButton.TextScaled = true
-closeButton.Parent = frame
-
-local closeCorner = Instance.new("UICorner")
-closeCorner.CornerRadius = UDim.new(0, 4)
-closeCorner.Parent = closeButton
-
--- TextBox for Input
-local textBox = Instance.new("TextBox")
-textBox.Size = UDim2.new(1, -20, 0, 30)
-textBox.Position = UDim2.new(0, 10, 0, 50)
-textBox.PlaceholderText = "Paste Job ID here..."
-textBox.Text = ""
-textBox.TextScaled = true
-textBox.Font = Enum.Font.SourceSans
-textBox.TextColor3 = Color3.fromRGB(0, 0, 0)
-textBox.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
-textBox.ClearTextOnFocus = false
-textBox.Parent = frame
-
-local boxCorner = Instance.new("UICorner")
-boxCorner.CornerRadius = UDim.new(0, 6)
-boxCorner.Parent = textBox
-
--- Teleport Button
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(1, -20, 0, 30)
-button.Position = UDim2.new(0, 10, 0, 95)
-button.Text = "Join Server by Job ID"
-button.Font = Enum.Font.SourceSansBold
-button.TextScaled = true
-button.TextColor3 = Color3.new(1, 1, 1)
-button.BackgroundColor3 = Color3.fromRGB(50, 100, 200)
-button.Parent = frame
-
-local buttonCorner = Instance.new("UICorner")
-buttonCorner.CornerRadius = UDim.new(0, 6)
-buttonCorner.Parent = button
-
--- Floating Open Button (hidden by default)
-local openButton = Instance.new("TextButton")
-openButton.Size = UDim2.new(0, 140, 0, 30)
-openButton.Position = UDim2.new(0, 20, 0, 20)
-openButton.Text = "Open Teleport UI"
-openButton.Font = Enum.Font.SourceSansBold
-openButton.TextScaled = true
-openButton.TextColor3 = Color3.new(1, 1, 1)
-openButton.BackgroundColor3 = Color3.fromRGB(40, 120, 60)
-openButton.Visible = false
-openButton.Parent = screenGui
-
-local openCorner = Instance.new("UICorner")
-openCorner.CornerRadius = UDim.new(0, 6)
-openCorner.Parent = openButton
-
--- Teleport Logic
-button.MouseButton1Click:Connect(function()
-    local targetJobId = textBox.Text
-    if targetJobId ~= "" then
-        pcall(function()
-            TeleportService:TeleportToPlaceInstance(placeId, targetJobId, LocalPlayer)
-        end)
+    local requestFunction = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
+    if requestFunction then
+        requestFunction({
+            Url = webhookURL,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = jsonData
+        })
     else
-        button.Text = "Enter a valid Job ID!"
-        task.wait(2)
-        button.Text = "Join Server by Job ID"
+        warn("Your executor does not support HTTP requests.")
+    end
+end
+
+--// UI Indicator
+local function createStatusUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "ScriptStatusUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = game:GetService("CoreGui")
+
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Name = "StatusLabel"
+    statusLabel.Parent = screenGui
+    statusLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+    statusLabel.Text = "✅ Notifier by Zarqawi"
+    statusLabel.Font = Enum.Font.SourceSansBold
+    statusLabel.TextSize = 18
+    statusLabel.Size = UDim2.new(0, 280, 0, 30)
+    statusLabel.Position = UDim2.new(0, 10, 0, 10)
+    statusLabel.BorderSizePixel = 0
+    statusLabel.BackgroundTransparency = 0.2
+end
+
+--// Create UI
+createStatusUI()
+
+--// Monitor Player's Backpack
+local player = game:GetService("Players").LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+
+-- Track previous quantities
+local previousQuantities = {}
+
+-- Function to track quantity of tools
+local function trackTool(tool)
+    if tool:IsA("Tool") then
+        local toolName = tool.Name
+        local lastQuantity = tool:GetAttribute("Quantity")
+        previousQuantities[tool] = lastQuantity
+
+        -- React to quantity change
+        tool:GetAttributeChangedSignal("Quantity"):Connect(function()
+            local newQuantity = tool:GetAttribute("Quantity")
+            if newQuantity ~= previousQuantities[tool] then
+                previousQuantities[tool] = newQuantity
+                sendQuantityChangeWebhook(toolName, newQuantity)
+            end
+        end)
+    end
+end
+
+-- Handle already existing tools
+for _, tool in ipairs(backpack:GetChildren()) do
+    trackTool(tool)
+end
+
+-- New tool added
+backpack.ChildAdded:Connect(function(tool)
+    if tool:IsA("Tool") then
+        sendWebhook(tool.Name)
+        task.wait(0.5) -- Give time for attributes to load
+        trackTool(tool)
     end
 end)
 
--- Close and Open Logic
-closeButton.MouseButton1Click:Connect(function()
-    frame.Visible = false
-    openButton.Visible = true
-end)
-
-openButton.MouseButton1Click:Connect(function()
-    frame.Visible = true
-    openButton.Visible = false
+-- Tool removed
+backpack.ChildRemoved:Connect(function(tool)
+    previousQuantities[tool] = nil
 end)
