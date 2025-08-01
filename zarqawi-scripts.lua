@@ -7,7 +7,7 @@ local function sendWebhook(itemName)
     local data = {
         content = mentionEveryone and "@everyone" or nil,
         embeds = { {
-            title = "🎯 You got a new pet",
+            title = "🐶 You got a new pet",
             description = "**Item:** " .. itemName,
             color = 0x00FF00,
             timestamp = DateTime.now():ToIsoDate(),
@@ -45,7 +45,7 @@ local function sendQuantityChangeWebhook(itemName, newQty)
     local data = {
         content = mentionEveryone and "@everyone" or nil,
         embeds = { {
-            title = "🔄 You got a new seed",
+            title = "🌱 You got a new seed",
             description = "**Item:** " .. itemName .. "\n**New Quantity:** " .. tostring(newQty),
             color = 0x00FF00,
             timestamp = DateTime.now():ToIsoDate(),
