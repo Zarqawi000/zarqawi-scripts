@@ -1,222 +1,299 @@
---// Default Webhook URL
-local function sendWebhook(itemName)
-    local httpService = game:GetService("HttpService")
-    
-    local mentionEveryone = (itemName == "Tranquil Bloom Seed" or itemName == "Corrupted Kitsune")
+-- ESP AND HEAD ENLARGER IS MADE BY ZARQAWI
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
 
-    local data = {
-        content = mentionEveryone and "@everyone" or nil,
-        embeds = { {
-            title = "🐶 You got a new pet",
-            description = "**Item:** " .. itemName,
-            color = 0x00FF00,
-            timestamp = DateTime.now():ToIsoDate(),
-            footer = {
-                text = "Made by Zarqawi"
-            }
-        }},
-        username = "Notifier by Zarqawi"
-    }
+-- UI Setup
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+ScreenGui.Name = "DeltaUI"
 
-    local jsonData = httpService:JSONEncode(data)
-    local requestFunction = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 200, 0, 120)
+Frame.Position = UDim2.new(0, 100, 0, 100)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Frame.Visible = true
 
-    if requestFunction then
-        requestFunction({
-            Url = webhookURL,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = jsonData
-        })
-    else
-        warn("Your executor does not support HTTP requests.")
+local UICorner = Instance.new("UICorner", Frame)
+UICorner.CornerRadius = UDim.new(0, 6)
+
+-- UI Title Label
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Size = UDim2.new(1, 0, 0, 25)
+TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.TextColor3 = Color3.new(1, 1, 1)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 16
+TitleLabel.Text = "Made by Zarqawi"
+TitleLabel.Parent = Frame
+
+-- UIListLayout
+local UIListLayout = Instance.new("UIListLayout", Frame)
+UIListLayout.Padding = UDim.new(0, 6)
+UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+
+
+-- Toggle button
+local function createToggle(name, callback)
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0.8, 0, 0, 30)
+    toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    toggle.TextColor3 = Color3.new(1, 1, 1)
+    toggle.Font = Enum.Font.Gotham
+    toggle.TextSize = 14
+    toggle.Text = name .. ": OFF"
+
+    local on = false
+    toggle.MouseButton1Click:Connect(function()
+        on = not on
+        toggle.Text = name .. ": " .. (on and "ON" or "OFF")
+        callback(on)
+    end)
+
+    local corner = Instance.new("UICorner", toggle)
+    corner.CornerRadius = UDim.new(0, 4)
+
+    return toggle
+end
+
+-- ESP Script
+local espConnections = {}
+local espScriptEnabled = false
+
+local function clearESP()
+    for _, con in pairs(espConnections) do
+        con:Disconnect()
+    end
+    espConnections = {}
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Character then
+            if player.Character:FindFirstChild("ESPHighlight") then
+                player.Character.ESPHighlight:Destroy()
+            end
+            if player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("NameTag") then
+                player.Character.Head.NameTag:Destroy()
+            end
+        end
     end
 end
 
+local function toggleESP(state)
+    espScriptEnabled = state
+    clearESP()
 
---// Send webhook when quantity changes
-local function sendQuantityChangeWebhook(itemName, newQty)
-    local httpService = game:GetService("HttpService")
+    if not state then return end
 
-    local mentionEveryone = (itemName == "Tranquil Bloom Seed" or itemName == "Corrupted Kitsune")
+    local function createHighlight(player)
+        if player.Character and not player.Character:FindFirstChild("ESPHighlight") then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "ESPHighlight"
+            highlight.FillColor = Color3.fromRGB(255, 0, 0)
+            highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            highlight.FillTransparency = 0.6
+            highlight.OutlineTransparency = 0
+            highlight.Adornee = player.Character
+            highlight.Parent = player.Character
+        end
+    end
 
-    local data = {
-        content = mentionEveryone and "@everyone" or nil,
-        embeds = { {
-            title = "🌱 You got a new seed",
-            description = "**Item:** " .. itemName .. "\n**New Quantity:** " .. tostring(newQty),
-            color = 0x00FF00,
-            timestamp = DateTime.now():ToIsoDate(),
-            footer = {
-                text = "Made by Zarqawi"
-            }
-        }},
-        username = "Notifier by Zarqawi"
-    }
+    local function createNameTag(player)
+        if player.Character and player.Character:FindFirstChild("Head") and not player.Character.Head:FindFirstChild("NameTag") then
+            local billboard = Instance.new("BillboardGui")
+            billboard.Name = "NameTag"
+            billboard.Adornee = player.Character.Head
+            billboard.Size = UDim2.new(0, 130, 0, 25)
+            billboard.StudsOffset = Vector3.new(0, 2, 0)
+            billboard.AlwaysOnTop = true
+            billboard.Parent = player.Character.Head
 
-    local jsonData = httpService:JSONEncode(data)
-    local requestFunction = (syn and syn.request) or (http and http.request) or http_request or request or (fluxus and fluxus.request)
+            local textLabel = Instance.new("TextLabel")
+            textLabel.Name = "TagLabel"
+            textLabel.Size = UDim2.new(1, 0, 1, 0)
+            textLabel.BackgroundTransparency = 1
+            textLabel.TextColor3 = Color3.new(1, 1, 1)
+            textLabel.Font = Enum.Font.Cartoon
+            textLabel.TextScaled = true
+            textLabel.TextStrokeTransparency = 0.6
+            textLabel.Text = ""
+            textLabel.Parent = billboard
+        end
+    end
 
-    if requestFunction then
-        requestFunction({
-            Url = webhookURL,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = jsonData
-        })
-    else
-        warn("Your executor does not support HTTP requests.")
+    local function update(player)
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            if player.Character.Head:FindFirstChild("NameTag") then
+                local distance = (LocalPlayer.Character.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
+                local health = math.floor(player.Character.Humanoid.Health)
+                player.Character.Head.NameTag.TagLabel.Text = player.Name .. " | " .. string.format("%.0f", distance).."m | ❤️"..health
+            end
+            if player.Character:FindFirstChild("ESPHighlight") then
+                player.Character.ESPHighlight.FillColor = player.Character.Humanoid.Health <= 0 and Color3.fromRGB(120, 0, 0) or Color3.fromRGB(255, 0, 0)
+            end
+        end
+    end
+
+    local function setup(player)
+        if player ~= LocalPlayer then
+            table.insert(espConnections, player.CharacterAdded:Connect(function()
+                wait(0.1)
+                createHighlight(player)
+                createNameTag(player)
+            end))
+            if player.Character then
+                createHighlight(player)
+                createNameTag(player)
+            end
+        end
+    end
+
+    for _, p in ipairs(Players:GetPlayers()) do setup(p) end
+
+    table.insert(espConnections, Players.PlayerAdded:Connect(setup))
+
+    table.insert(espConnections, RunService.RenderStepped:Connect(function()
+        if espScriptEnabled then
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer then
+                    update(p)
+                end
+            end
+        end
+    end))
+end
+
+-- Head Enlarger Script with Original Properties Storage
+local headScriptEnabled = false
+local originalHeadProperties = {} -- Store original head properties
+
+local function storeOriginalHeadProperties(player)
+    if player.Character and player.Character:FindFirstChild("Head") then
+        local head = player.Character.Head
+        originalHeadProperties[player.UserId] = {
+            Size = head.Size,
+            Transparency = head.Transparency,
+            BrickColor = head.BrickColor,
+            Material = head.Material,
+            CanCollide = head.CanCollide,
+            Massless = head.Massless
+        }
     end
 end
 
---// Create UI
-local function createStatusUI()
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "ScriptStatusUI"
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = game:GetService("CoreGui")
+local function restoreHeads()
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+            pcall(function()
+                local head = p.Character.Head
+                local props = originalHeadProperties[p.UserId]
+                
+                if props then
+                    -- Restore original properties
+                    head.Size = props.Size
+                    head.Transparency = props.Transparency
+                    head.BrickColor = props.BrickColor
+                    head.Material = props.Material
+                    head.CanCollide = props.CanCollide
+                    head.Massless = props.Massless
+                else
+                    -- Fallback to default values if original properties weren't stored
+                    head.Size = Vector3.new(2, 1, 1)
+                    head.Transparency = 0
+                    head.BrickColor = BrickColor.new("Medium stone grey")
+                    head.Material = Enum.Material.Plastic
+                    head.CanCollide = true
+                    head.Massless = false
+                end
+            end)
+        end
+    end
+end
 
-    local container = Instance.new("Frame")
-    container.Name = "MainFrame"
-    container.Parent = screenGui
-    container.Size = UDim2.new(0, 310, 0, 90)
-    container.Position = UDim2.new(0, 10, 0, 10)
-    container.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    container.BorderSizePixel = 0
-    container.BackgroundTransparency = 0.2
+local function toggleHead(state)
+    headScriptEnabled = state
+    _G.Disabled = not state
+    _G.HeadSize = 6
 
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Name = "StatusLabel"
-    statusLabel.Parent = container
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-    statusLabel.Text = "✅ Notifier by Zarqawi"
-    statusLabel.Font = Enum.Font.GothamBold
-    statusLabel.TextSize = 18
-    statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-    statusLabel.Size = UDim2.new(1, -40, 0, 30)
-    statusLabel.Position = UDim2.new(0, 10, 0, 5)
+    if state then
+        -- Store original properties when enabling
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer then
+                storeOriginalHeadProperties(p)
+            end
+        end
+    else
+        -- Restore original properties when disabling
+        restoreHeads()
+    end
+end
 
-    -- X Button to close UI
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Parent = container
-    closeButton.Size = UDim2.new(0, 25, 0, 25)
-    closeButton.Position = UDim2.new(1, -30, 0, 5)
-    closeButton.Text = "X"
-    closeButton.TextColor3 = Color3.fromRGB(255, 0, 0)
-    closeButton.BackgroundColor3 = Color3.fromRGB(50, 0, 0)
-    closeButton.Font = Enum.Font.GothamBold
-    closeButton.TextSize = 14
-    closeButton.BorderSizePixel = 0
+-- Store original properties for new players
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        wait(0.1) -- Wait for character to fully load
+        if headScriptEnabled then
+            storeOriginalHeadProperties(player)
+        end
+    end)
+end)
 
-    -- Open Button (initially hidden)
-    local openButton = Instance.new("TextButton")
-    openButton.Name = "OpenButton"
-    openButton.Parent = screenGui
-    openButton.Size = UDim2.new(0, 80, 0, 30)
-    openButton.Position = UDim2.new(0, 10, 0, 110)
-    openButton.Text = "Open UI"
-    openButton.Visible = false
-    openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    openButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-    openButton.Font = Enum.Font.Gotham
-    openButton.TextSize = 14
-    openButton.BorderSizePixel = 0
+-- Store original properties for existing players when they respawn
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        player.CharacterAdded:Connect(function()
+            wait(0.1)
+            if headScriptEnabled then
+                storeOriginalHeadProperties(player)
+            end
+        end)
+        -- Store for already existing characters
+        if player.Character then
+            storeOriginalHeadProperties(player)
+        end
+    end
+end
 
-    -- Webhook TextBox
-    local webhookBox = Instance.new("TextBox")
-    webhookBox.Name = "WebhookBox"
-    webhookBox.Parent = container
-    webhookBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    webhookBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    webhookBox.PlaceholderText = "Put your webhook link here and press Enter"
-    webhookBox.Font = Enum.Font.Gotham
-    webhookBox.TextSize = 14
-    webhookBox.ClearTextOnFocus = false
-    webhookBox.TextXAlignment = Enum.TextXAlignment.Left
-    webhookBox.TextWrapped = false
-    webhookBox.TextTruncate = Enum.TextTruncate.AtEnd
-    webhookBox.ClipsDescendants = true
-    webhookBox.Size = UDim2.new(1, -20, 0, 25)
-    webhookBox.Position = UDim2.new(0, 10, 0, 40)
-    webhookBox.BorderSizePixel = 0
-    webhookBox.BackgroundTransparency = 0.1
+-- Buttons
+local espToggle = createToggle("ESP", toggleESP)
+espToggle.Parent = Frame
 
-    -- Logic to update webhookURL
-    webhookBox.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            if webhookBox.Text:match("^https://discord.com/api/webhooks/") then
-                webhookURL = webhookBox.Text
-                statusLabel.Text = "✅ Webhook updated!"
-                task.delay(3, function()
-                    if statusLabel then
-                        statusLabel.Text = "✅ Notifier by Zarqawi"
+local headToggle = createToggle("Head Enlarger", toggleHead)
+headToggle.Parent = Frame
+
+-- Head Enlarger Loop
+RunService.RenderStepped:Connect(function()
+    if headScriptEnabled then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
+                pcall(function()
+                    -- Store original properties if not already stored
+                    if not originalHeadProperties[v.UserId] then
+                        storeOriginalHeadProperties(v)
                     end
-                end)
-            else
-                statusLabel.Text = "❌ Invalid webhook URL"
-                task.delay(3, function()
-                    if statusLabel then
-                        statusLabel.Text = "✅ Notifier by Zarqawi"
-                    end
+                    
+                    -- Apply enlarged head properties
+                    v.Character.Head.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
+                    v.Character.Head.Transparency = 1
+                    v.Character.Head.BrickColor = BrickColor.new("Red")
+                    v.Character.Head.Material = Enum.Material.Neon
+                    v.Character.Head.CanCollide = false
+                    v.Character.Head.Massless = true
                 end)
             end
         end
-    end)
-
-    -- Close and open logic
-    closeButton.MouseButton1Click:Connect(function()
-        container.Visible = false
-        openButton.Visible = true
-    end)
-
-    openButton.MouseButton1Click:Connect(function()
-        container.Visible = true
-        openButton.Visible = false
-    end)
-end
-
--- Create UI
-createStatusUI()
-
--- Track backpack items
-local player = game:GetService("Players").LocalPlayer
-local backpack = player:WaitForChild("Backpack")
-local previousQuantities = {}
-
-local function trackTool(tool)
-    if tool:IsA("Tool") then
-        local toolName = tool.Name
-        local lastQuantity = tool:GetAttribute("Quantity")
-        previousQuantities[tool] = lastQuantity
-
-        tool:GetAttributeChangedSignal("Quantity"):Connect(function()
-            local newQuantity = tool:GetAttribute("Quantity")
-            if newQuantity ~= previousQuantities[tool] then
-                previousQuantities[tool] = newQuantity
-                sendQuantityChangeWebhook(toolName, newQuantity)
-            end
-        end)
-    end
-end
-
-for _, tool in ipairs(backpack:GetChildren()) do
-    trackTool(tool)
-end
-
-backpack.ChildAdded:Connect(function(tool)
-    if tool:IsA("Tool") then
-        sendWebhook(tool.Name)
-        task.wait(0.5)
-        trackTool(tool)
     end
 end)
 
-backpack.ChildRemoved:Connect(function(tool)
-    previousQuantities[tool] = nil
+-- Keybind for UI Toggle (G)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.G then
+        Frame.Visible = not Frame.Visible
+    end
 end)
