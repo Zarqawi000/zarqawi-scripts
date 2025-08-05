@@ -1,3 +1,4 @@
+-- SCRIPT IS MADE BY ZARQAWI
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
