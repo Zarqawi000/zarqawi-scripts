@@ -1,4 +1,3 @@
--- ESP AND HEAD ENLARGER IS MADE BY ZARQAWI
 -- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -31,16 +30,19 @@ TitleLabel.TextColor3 = Color3.new(1, 1, 1)
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 16
 TitleLabel.Text = "Made by Zarqawi"
+TitleLabel.LayoutOrder = 0
 TitleLabel.Parent = Frame
 
--- UIListLayout
-local UIListLayout = Instance.new("UIListLayout", Frame)
-UIListLayout.Padding = UDim.new(0, 6)
+-- UIListLayout for buttons
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = Frame
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 8)  -- 8 pixels spacing
 UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
-
--- Toggle button
+-- Toggle button creator
+local toggleIndex = 1
 local function createToggle(name, callback)
     local toggle = Instance.new("TextButton")
     toggle.Size = UDim2.new(0.8, 0, 0, 30)
@@ -49,6 +51,8 @@ local function createToggle(name, callback)
     toggle.Font = Enum.Font.Gotham
     toggle.TextSize = 14
     toggle.Text = name .. ": OFF"
+    toggle.LayoutOrder = toggleIndex
+    toggleIndex = toggleIndex + 1
 
     local on = false
     toggle.MouseButton1Click:Connect(function()
@@ -260,7 +264,7 @@ for _, player in pairs(Players:GetPlayers()) do
     end
 end
 
--- Buttons
+-- Create toggles and parent them to Frame
 local espToggle = createToggle("ESP", toggleESP)
 espToggle.Parent = Frame
 
