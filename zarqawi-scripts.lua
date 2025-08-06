@@ -1,76 +1,133 @@
--- MADE BY ZARQAWI
+-- THIS SCRIPT IS MAINTAINED AND BUILT BY ZARQAWI
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local StarterGui = game:GetService("StarterGui")
-local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
--- UI Creation
-local ZarqawiUI = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-ZarqawiUI.Name = "ZarqawiUI"
-ZarqawiUI.ResetOnSpawn = false
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ZarqaworksUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = game.CoreGui
 
-local main = Instance.new("Frame", ZarqawiUI)
-main.Name = "Main"
-main.Position = UDim2.new(0, 10, 0.5, -115)
-main.Size = UDim2.new(0, 200, 0, 250)
-main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-main.Active = true
-main.Draggable = true
+local function createPanel(name, position)
+    local panel = Instance.new("Frame")
+    panel.Name = name
+    panel.Size = UDim2.new(0, 180, 0, 180)
+    panel.Position = position
+    panel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    panel.BorderSizePixel = 0
+    panel.Visible = true
+    panel.Parent = screenGui
 
--- Add title
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, 0, 0, 30)
-title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Text = "Made by Zarqawi"
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 18
-title.BorderSizePixel = 0
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = panel
 
-local UIListLayout = Instance.new("UIListLayout", main)
-UIListLayout.Padding = UDim.new(0, 5)
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    main.Size = UDim2.new(0, 200, 0, UIListLayout.AbsoluteContentSize.Y + 40)
-end)
+    return panel
+end
 
-local function addButton(text)
+-- Left-center panel position
+local panelone = createPanel("panelone", UDim2.new(0, 10, 0.5, -90))
+local paneltwo = createPanel("paneltwo", UDim2.new(0, 192, 0.5, -90))
+paneltwo.Visible = false
+
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, 0, 0, 24)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.Font = Enum.Font.GothamSemibold
+titleLabel.TextScaled = true
+titleLabel.Text = "Zarqaworks"
+titleLabel.BorderSizePixel = 0
+titleLabel.Parent = panelone
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 8)
+titleCorner.Parent = titleLabel
+
+local function createCategoryButton(name, text, posY)
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(1, -10, 0, 40)
-    button.Position = UDim2.new(0, 5, 0, 0)
-    button.BackgroundColor3 = Color3.fromRGB(0, 115, 200)
-    button.TextColor3 = Color3.new(1, 1, 1)
+    button.Name = name
+    button.Size = UDim2.new(1, -12, 0, 20)
+    button.Position = UDim2.new(0, 6, 0, posY)
+    button.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
     button.Text = text
-    button.Font = Enum.Font.SourceSansBold
-    button.TextSize = 18
-    button.Parent = main
+    button.Font = Enum.Font.Gotham
+    button.TextScaled = true
+    button.BorderSizePixel = 0
+    button.Parent = panelone
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = button
+
     return button
 end
 
--- Buttons
-local btn1 = addButton("ESP: OFF")
-local btn2 = addButton("Head Enlarger: OFF")
-local btn3 = addButton("Aimbot: OFF")
-local btn4 = addButton("Lock: Head")
+local aimingButton = createCategoryButton("AimingButton", "Aiming", 30)
+local visualButton = createCategoryButton("VisualButton", "Visual", 55)
 
--- Toggle UI with G key
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.G then
-        main.Visible = not main.Visible
-    end
-end)
+local aimingFrame = Instance.new("Frame")
+aimingFrame.Name = "AimingFrame"
+aimingFrame.Size = UDim2.new(1, 0, 1, 0)
+aimingFrame.BackgroundTransparency = 1
+aimingFrame.Visible = false
+aimingFrame.Parent = paneltwo
 
--- Aimbot Integration
+local visualFrame = Instance.new("Frame")
+visualFrame.Name = "VisualFrame"
+visualFrame.Size = UDim2.new(1, 0, 1, 0)
+visualFrame.BackgroundTransparency = 1
+visualFrame.Visible = false
+visualFrame.Parent = paneltwo
+
+local function createButton(parent, name, posY)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(1, -12, 0, 20)
+    button.Position = UDim2.new(0, 6, 0, posY)
+    button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = name .. ": OFF"
+    button.Font = Enum.Font.Gotham
+    button.TextScaled = true
+    button.BorderSizePixel = 0
+    button.Parent = parent
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = button
+
+    return button
+end
+
+local aimbotToggle = createButton(aimingFrame, "Aimbot", 5)
+local lockPartToggle = createButton(aimingFrame, "Lock Part", 30)
+local checkWallsToggle = createButton(aimingFrame, "Check Walls", 55)
+
+local espToggle = createButton(visualFrame, "ESP", 5)
+local bodyHighlightToggle = createButton(visualFrame, "Body Highlights", 30)
+local headEnlargerToggle = createButton(visualFrame, "Head Enlarger", 55)
+
 local teamCheck = false
 local fov = 50
 local predictionFactor = 0.08
 local aimbotEnabled = false
 local lockPart = "Head"
+local checkWalls = true
+
+-- Show notification at script execution
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Nicetry Hub",
+    Text = "Successfully Executed, This script is made by Zarqawi",
+    Duration = 5
+})
 
 local FOVring = Drawing.new("Circle")
-FOVring.Visible = false
+FOVring.Visible = true
 FOVring.Thickness = 1
 FOVring.Radius = fov
 FOVring.Transparency = 0
@@ -78,7 +135,15 @@ FOVring.Color = Color3.fromRGB(255, 0, 0)
 FOVring.Position = workspace.CurrentCamera.ViewportSize / 2
 FOVring.Filled = false
 
-local currentTarget = nil
+local function isVisible(part)
+    local origin = workspace.CurrentCamera.CFrame.Position
+    local direction = (part.Position - origin).Unit * 500
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    local result = workspace:Raycast(origin, direction, raycastParams)
+    return result and result.Instance and result.Instance:IsDescendantOf(part.Parent)
+end
 
 local function getTargetPart(character)
     if not character then return nil end
@@ -101,7 +166,7 @@ local function getClosest(cframe)
             if part then
                 local screenPoint, onScreen = workspace.CurrentCamera:WorldToViewportPoint(part.Position)
                 local distanceFromCenter = (Vector2.new(screenPoint.X, screenPoint.Y) - screenCenter).Magnitude
-                if onScreen and distanceFromCenter <= fov then
+                if onScreen and distanceFromCenter <= fov and (not checkWalls or isVisible(part)) then
                     local magBuf = (part.Position - ray:ClosestPoint(part.Position)).Magnitude
                     if magBuf < mag then
                         mag = magBuf
@@ -128,7 +193,7 @@ end
 
 RunService.RenderStepped:Connect(function()
     if not aimbotEnabled then return end
-    currentTarget = getClosest(workspace.CurrentCamera.CFrame)
+    local currentTarget = getClosest(workspace.CurrentCamera.CFrame)
     if currentTarget and currentTarget.Character then
         local predictedPosition = predictPosition(currentTarget)
         if predictedPosition then
@@ -137,71 +202,72 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Button 3: Aimbot Toggle
-btn3.MouseButton1Click:Connect(function()
+aimbotToggle.MouseButton1Click:Connect(function()
     aimbotEnabled = not aimbotEnabled
-    btn3.Text = aimbotEnabled and "Aimbot: ON" or "Aimbot: OFF"
-    btn3.BackgroundColor3 = aimbotEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(0, 115, 200)
-    
-    StarterGui:SetCore("SendNotification", {
-        Title = "Made by Zarqawi",
-        Text = aimbotEnabled and "Aimbot enabled!" or "Aimbot disabled",
-        Duration = 3,
-    })
+    aimbotToggle.Text = "Aimbot: " .. (aimbotEnabled and "ON" or "OFF")
 end)
 
--- Button 4: Lock Part Toggle
-btn4.MouseButton1Click:Connect(function()
-    if lockPart == "Head" then
-        lockPart = "Torso"
-        btn4.Text = "Lock: Body"
-    else
-        lockPart = "Head"
-        btn4.Text = "Lock: Head"
+lockPartToggle.MouseButton1Click:Connect(function()
+    lockPart = (lockPart == "Head") and "Torso" or "Head"
+    lockPartToggle.Text = "Lock Part: " .. lockPart
+end)
+
+checkWallsToggle.MouseButton1Click:Connect(function()
+    checkWalls = not checkWalls
+    checkWallsToggle.Text = "Check Walls: " .. (checkWalls and "ON" or "OFF")
+end)
+
+-- ESP and Highlights
+local espEnabled = false
+local highlightEnabled = false
+local highlights = {}
+local nameTags = {}
+
+local function clearESP()
+    for _, tag in pairs(nameTags) do tag:Destroy() end
+    nameTags = {}
+end
+
+local function clearHighlights()
+    for _, h in pairs(highlights) do h:Destroy() end
+    highlights = {}
+end
+
+local function createNameTag(player)
+    if player.Character and player.Character:FindFirstChild("Head") then
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "NameTag"
+        billboard.Adornee = player.Character:FindFirstChild("Head")
+        billboard.Size = UDim2.new(0, 130, 0, 25)
+        billboard.StudsOffset = Vector3.new(0, 2, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Parent = player.Character
+
+        local label = Instance.new("TextLabel")
+        label.Name = "TagLabel"
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.Font = Enum.Font.Cartoon
+        label.TextScaled = true
+        label.TextStrokeTransparency = 0.6
+        label.TextStrokeColor3 = Color3.new(0, 0, 0)
+        label.Parent = billboard
+
+        nameTags[player] = billboard
     end
-end)
+end
 
--- Head Enlarger Logic
-local originalSizes = {}
-_G.HeadSize = 6
-_G.Disabled = false
-
-btn2.MouseButton1Click:Connect(function()
-    _G.Disabled = not _G.Disabled
-    btn2.Text = _G.Disabled and "Head Enlarger: ON" or "Head Enlarger: OFF"
-    btn2.BackgroundColor3 = _G.Disabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(0, 115, 200)
-end)
-
-RunService.RenderStepped:Connect(function()
-    for i, v in ipairs(Players:GetPlayers()) do
-        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("Head") then
-            local head = v.Character.Head
-            if _G.Disabled then
-                if not originalSizes[v.Name] then
-                    originalSizes[v.Name] = head.Size
-                end
-                head.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
-                head.Transparency = 1
-                head.BrickColor = BrickColor.new("Red")
-                head.Material = Enum.Material.Neon
-                head.CanCollide = false
-                head.Massless = true
-            elseif originalSizes[v.Name] then
-                head.Size = originalSizes[v.Name]
-                head.Transparency = 0
-                head.BrickColor = BrickColor.new("Medium stone grey")
-                head.Material = Enum.Material.Plastic
-                head.CanCollide = true
-                head.Massless = false
-                originalSizes[v.Name] = nil
-            end
+local function updateNameTag(player)
+    if nameTags[player] and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("HumanoidRootPart") then
+        local tag = nameTags[player]:FindFirstChild("TagLabel")
+        if tag then
+            local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            local health = math.floor(player.Character.Humanoid.Health)
+            tag.Text = player.DisplayName .. " (@".. player.Name .. ") | " .. string.format("%.0f", distance) .. "m | ❤" .. health
         end
     end
-end)
-
--- Enhanced ESP Logic with Highlight
-local espEnabled = false
-local espConnections = {}
+end
 
 local function createHighlight(player)
     if player.Character and not player.Character:FindFirstChild("ESPHighlight") then
@@ -213,124 +279,138 @@ local function createHighlight(player)
         highlight.OutlineTransparency = 0
         highlight.Adornee = player.Character
         highlight.Parent = player.Character
-    end
-end
-
-local function createNameTag(player)
-    if player.Character and player.Character:FindFirstChild("Head") and not player.Character.Head:FindFirstChild("NameTag") then
-        local billboard = Instance.new("BillboardGui")
-        billboard.Name = "NameTag"
-        billboard.Adornee = player.Character.Head
-        billboard.Size = UDim2.new(0, 200, 0, 40)
-        billboard.StudsOffset = Vector3.new(0, 2.5, 0)
-        billboard.AlwaysOnTop = true
-        billboard.Parent = player.Character.Head
-
-        local textLabel = Instance.new("TextLabel")
-        textLabel.Name = "TagLabel"
-        textLabel.Size = UDim2.new(1, 0, 1, 0)
-        textLabel.BackgroundTransparency = 1
-        textLabel.TextColor3 = Color3.new(1, 1, 1)
-        textLabel.Font = Enum.Font.SourceSansBold
-        textLabel.TextSize = 14
-        textLabel.TextStrokeTransparency = 0.5
-        textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-        textLabel.Text = ""
-        textLabel.Parent = billboard
-    end
-end
-
-local function updateNameTag(player)
-    if player.Character and player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("NameTag") and player.Character:FindFirstChild("Humanoid") then
-        local tag = player.Character.Head.NameTag.TagLabel
-        local distance = (LocalPlayer.Character.PrimaryPart.Position - player.Character.PrimaryPart.Position).Magnitude
-        local health = math.floor(player.Character.Humanoid.Health)
-        tag.Text = string.format("%s [%s] | %dm | ❤️ %d", 
-            player.DisplayName, 
-            player.Name, 
-            math.floor(distance),
-            health)
+        highlights[player] = highlight
     end
 end
 
 local function updateHighlight(player)
-    if player.Character and player.Character:FindFirstChild("ESPHighlight") and player.Character:FindFirstChild("Humanoid") then
+    if highlights[player] and player.Character and player.Character:FindFirstChild("Humanoid") then
         if player.Character.Humanoid.Health <= 0 then
-            player.Character.ESPHighlight.FillColor = Color3.fromRGB(120, 0, 0)
+            highlights[player].FillColor = Color3.fromRGB(120, 0, 0)
         else
-            player.Character.ESPHighlight.FillColor = Color3.fromRGB(255, 0, 0)
+            highlights[player].FillColor = Color3.fromRGB(255, 0, 0)
         end
     end
 end
 
-local function setupESP(player)
-    if player ~= LocalPlayer then
-        local function setupCharacter()
-            if espEnabled then
-                createHighlight(player)
-                createNameTag(player)
-            end
-        end
-        
-        if not espConnections[player] then
-            espConnections[player] = player.CharacterAdded:Connect(function()
-                wait(0.1)
-                setupCharacter()
-            end)
-        end
-        
-        if player.Character then
-            setupCharacter()
-        end
-    end
-end
-
-local function refreshESP()
-    -- Clear existing ESP
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            if player.Character:FindFirstChild("ESPHighlight") then
-                player.Character.ESPHighlight:Destroy()
-            end
-            if player.Character:FindFirstChild("Head") and player.Character.Head:FindFirstChild("NameTag") then
-                player.Character.Head.NameTag:Destroy()
-            end
-        end
-    end
-    
-    -- Recreate ESP if enabled
-    if espEnabled then
-        for _, player in ipairs(Players:GetPlayers()) do
-            setupESP(player)
-        end
-    end
-end
-
--- Initialize ESP for all players
-for _, player in ipairs(Players:GetPlayers()) do
-    setupESP(player)
-end
-
-Players.PlayerAdded:Connect(function(player)
-    setupESP(player)
-end)
-
--- ESP Toggle Button with refresh functionality
-btn1.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    btn1.Text = espEnabled and "ESP: ON" or "ESP: OFF"
-    btn1.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(0, 115, 200)
-    refreshESP()
-end)
-
--- Update ESP elements periodically
 RunService.RenderStepped:Connect(function()
-    if espEnabled then
-        for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            if espEnabled then
+                if not nameTags[player] then createNameTag(player) end
                 updateNameTag(player)
+            else
+                if nameTags[player] then nameTags[player]:Destroy(); nameTags[player] = nil end
+            end
+
+            if highlightEnabled then
+                if not highlights[player] then createHighlight(player) end
                 updateHighlight(player)
+            else
+                if highlights[player] then highlights[player]:Destroy(); highlights[player] = nil end
             end
         end
+    end
+end)
+
+espToggle.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espToggle.Text = "ESP: " .. (espEnabled and "ON" or "OFF")
+    clearESP()
+end)
+
+bodyHighlightToggle.MouseButton1Click:Connect(function()
+    highlightEnabled = not highlightEnabled
+    bodyHighlightToggle.Text = "Body Highlights: " .. (highlightEnabled and "ON" or "OFF")
+    clearHighlights()
+end)
+
+-- Head Enlarger
+local headEnlargerEnabled = false
+local originalHeads = {}
+
+headEnlargerToggle.MouseButton1Click:Connect(function()
+    headEnlargerEnabled = not headEnlargerEnabled
+    headEnlargerToggle.Text = "Head Enlarger: " .. (headEnlargerEnabled and "ON" or "OFF")
+    if not headEnlargerEnabled then
+        for player, data in pairs(originalHeads) do
+            if player.Character and player.Character:FindFirstChild("Head") then
+                local head = player.Character.Head
+                head.Size = data.Size
+                head.Transparency = data.Transparency
+                head.BrickColor = data.BrickColor
+                head.Material = data.Material
+                head.CanCollide = data.CanCollide
+                head.Massless = data.Massless
+            end
+        end
+        originalHeads = {}
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if headEnlargerEnabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+                local head = player.Character.Head
+                if not originalHeads[player] then
+                    originalHeads[player] = {
+                        Size = head.Size,
+                        Transparency = head.Transparency,
+                        BrickColor = head.BrickColor,
+                        Material = head.Material,
+                        CanCollide = head.CanCollide,
+                        Massless = head.Massless
+                    }
+                end
+                head.Size = Vector3.new(6, 6, 6)
+                head.Transparency = 1
+                head.BrickColor = BrickColor.new("Red")
+                head.Material = Enum.Material.Neon
+                head.CanCollide = false
+                head.Massless = true
+            end
+        end
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.G then
+        local state = not panelone.Visible
+        panelone.Visible = state
+        if not state then
+            paneltwo.Visible = false
+        else
+            if aimingFrame.Visible or visualFrame.Visible then
+                paneltwo.Visible = true
+            end
+        end
+    end
+end)
+
+local currentCategory = ""
+aimingButton.MouseButton1Click:Connect(function()
+    if currentCategory == "Aiming" then
+        paneltwo.Visible = false
+        aimingFrame.Visible = false
+        currentCategory = ""
+    else
+        paneltwo.Visible = true
+        aimingFrame.Visible = true
+        visualFrame.Visible = false
+        currentCategory = "Aiming"
+    end
+end)
+
+visualButton.MouseButton1Click:Connect(function()
+    if currentCategory == "Visual" then
+        paneltwo.Visible = false
+        visualFrame.Visible = false
+        currentCategory = ""
+    else
+        paneltwo.Visible = true
+        visualFrame.Visible = true
+        aimingFrame.Visible = false
+        currentCategory = "Visual"
     end
 end)
